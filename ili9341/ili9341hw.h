@@ -69,7 +69,7 @@
 #define CS_ENABLE           0
 #define CS_DISABLE          1
 
-/* Some custom palette. */
+/* Some custom palette. THese are 24 bit and this device ony displays 18 bits */
 #define TFT_ALICEBLUE 0xF7DF
 #define TFT_ANTIQUEWHITE 0xFF5A
 #define TFT_AQUA 0x07FF
