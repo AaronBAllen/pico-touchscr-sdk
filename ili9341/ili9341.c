@@ -60,6 +60,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 ///////////////////////////////////////////////////////////////////////////////
+#include <stdint.h>
 #include "ili9341.h"
 
 static inline void ILI9341_CS_Set(const ili9341_config_t *pconfig, int state) 

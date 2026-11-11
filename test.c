@@ -1,5 +1,7 @@
 #include <string.h>
 #include <stdlib.h>
+#include <stdint.h>
+
 
 #include "ili9341/ili9341.h"
 #include "touch/msp2807_touch.h"
@@ -7,9 +9,9 @@
 // TODO: PSE uncomment one mode only.
 
 //#define MODE_TEST_TEXTBOX_DRAWING
-#define MODE_TEST_TOUCH_DRAWING
+//#define MODE_TEST_TOUCH_DRAWING
 //#define MODE_TEST_RANDOM_LINES
-//#define MODE_TEST_RANDOM_LABELS
+#define MODE_TEST_RANDOM_LABELS
 
 void PRN32(uint32_t *val)
 { 
@@ -123,7 +125,7 @@ int main()
 
     sScreen.mCanvasPaper = kBlack;
     sScreen.mCanvasInk = kMagenta;
-    TftClearScreenBuffer(&sScreen, kBlack, kRed);
+    TftClearScreenBuffer(&sScreen, kGreen, kBlue);
     TftFullScreenWrite(&sScreen);
 
 #ifdef MODE_TEST_TOUCH_DRAWING
@@ -164,43 +166,66 @@ int main()
 #endif
 
     int led_state = 0;
-    for(;;)
+    for(;;)//this is the loop of the program. It will run forever, until the device is powered off.
     {
         gpio_put(PICO_DEFAULT_LED_PIN, (led_state & 1));
         ++led_state;
 
 #ifdef MODE_TEST_TEXTBOX_DRAWING
+        sScreen.mCanvasPaper = (sScreen.mCanvasPaper+1 & 7);
+        sScreen.mCanvasInk = (sScreen.mCanvasInk+1 & 7);
         TestBoxDraw(&sScreen);
-        sleep_ms(100);
+        sleep_ms(1);
         continue;
 #endif
 #ifdef MODE_TEST_RANDOM_LINES
+        sScreen.mCanvasInk = (sScreen.mCanvasInk+1 & 7);
+        sleep_ms(100);
         TestRandomLines(&sScreen);
+         static volatile int touch_tick = 0;
+            touch_tick++;
+         if(0 == led_state % 128)
+         sleep_ms(100);
+                TftPrintf(&sScreen, 0, 8, ~(touch_tick&7), touch_tick&7, "%u %d %d \n", touch_tick,
+                   sScreen.mCanvasInk, touch_tick);
+        
+            TftFullScreenSelectiveWrite(&sScreen, 10000);
         continue;
 #endif
 #ifdef MODE_TEST_RANDOM_LABELS
+        sScreen.mCanvasInk = (sScreen.mCanvasInk+1 & 7);
         TestRandomLabels(&sScreen);
+        
+        sleep_ms(100);
+        TestRandomLines(&sScreen);
+         static volatile int touch_tick = 0;
+            touch_tick++;
+         if(0 == led_state % 128)
+         sleep_ms(100);
+                TftPrintf(&sScreen, 0, 8, ~(touch_tick&7), touch_tick&7, "%u %d %d \n", touch_tick,
+                   sScreen.mCanvasInk, touch_tick);
+        
+            TftFullScreenSelectiveWrite(&sScreen, 10000);
         //sleep_ms(250);
         continue;
 #endif
 
 #ifdef MODE_TEST_TOUCH_DRAWING
-        CheckTouch(&touch_config);
-        if(touch_config.mIsProcessed)
+        CheckTouch(&touch_config);//test if there was a touch
+        if(touch_config.mIsProcessed)//True if touch is detected but I don't know if there is a limit
         {
             static int touch_tick = 0;
             touch_tick++;
-
-            int32_t x = (touch_config.mXf + 8) >> 4;
+            int32_t x = (touch_config.mXf + 8) >> 4;  //reads touch_config
             int32_t y = (touch_config.mYf + 8) >> 4;
 
             TouchTransformCoords(&cmat, &x, &y);
-
-            TftPutPixel(&sScreen, x, y, kBlack, kYellow);
+            
+            TftPutPixel(&sScreen, x, y, kBlack, touch_tick&7);
             
             if(0 == led_state % 128)
-                TftPrintf(&sScreen, 0, 8, ~(touch_tick&7), touch_tick&7, "%u %d %d %d %d\n", touch_tick,
-                    touch_config.mX, touch_config.mY, x, y);
+                TftPrintf(&sScreen, 0, 8, ~(touch_tick&7), touch_tick&7, "%u %d %d %d %d %d\n", touch_tick,
+                    touch_config.mX, touch_config.mY, x, y, touch_tick&7);
         
             TftFullScreenSelectiveWrite(&sScreen, 10000);
 

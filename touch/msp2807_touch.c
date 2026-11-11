@@ -163,7 +163,7 @@ int CheckTouch(touch_control_t *pcontrol)
             {
                 const uint32_t klo = timer_hw->timelr;
                 const uint32_t khi = timer_hw->timehr;
-                const uint64_t ktm64_now = ((uint64_t)khi << 32) | klo;
+                const uint64_t ktm64_now = ((uint64_t) khi << 32) | klo;
 
                 if(ktm64_now - pcontrol->mTmOfLastTouch 
                         > pcontrol->mkTmLongFlick)
